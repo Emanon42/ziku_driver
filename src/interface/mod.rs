@@ -40,10 +40,11 @@ impl<'a> Handler<'a>{
 
         // main session process loop
         loop{
+            self.buffer = [0; 512];
             write_to_stream(&self.stream, b"> ");
             self.stream.read(&mut self.buffer).unwrap();
             let raw_content = String::from_utf8_lossy(&self.buffer[..]);
-            // 不 等 了
+            //println!("{}", raw_content.to_string());
             let instr: Command = parser::parse(raw_content.to_string());
             match instr.cmd{
                 CmdType::SyntaxError => write_to_stream(&self.stream, b"syntax error!\n"),
@@ -72,11 +73,13 @@ impl<'a> Handler<'a>{
                     match self.database.scan(&s.to_string()){
                         database::CRUD_Result::KeyNotExist => write_to_stream(&self.stream, b"key does not exist!\n"),
                         database::CRUD_Result::EntriesFinded(vec) => {
-                            let res = String::new();
+                            //println!("scanned:{:?}", vec);
+                            let mut res = String::new();
                             for (k, v) in vec{
-                                format!("{}\nkey: {}, value: {}", res, k, v);
+                                res = format!("{}\nkey: {}, value: {}", res, k, v);
                             }
-                            write_to_stream(&self.stream, format!("{}\n", res).as_bytes())
+                            //println!("result:{:?}", res);
+                            write_to_stream(&self.stream, format!("{}\n", &res[1..]).as_bytes())
                         },
                         _ => ()
                     }
