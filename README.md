@@ -21,4 +21,12 @@ Now it's a functional demo
 TODO list:    
  - "documentize" all prompt texts and instruction arugments (xml or json)    
  - update data infrastructure to LSM tree    
- - implement mutex lock and multithread
+ - implement mutex lock and multithread    
+     
+ Benchmark added, for current version:
+```
+> benchmark
+set 1,000,000 random data costs: 10.447723624s
+scan in 1,000,000 random data costs: 197.789551ms
+get 1,000,000 random data costs: 6.08817167s
+```
