@@ -44,6 +44,12 @@ pub fn parse(c: String) -> interface::Command{
                 }
             }
         },
+        "benchmark" => {
+            interface::Command{
+                cmd: interface::CmdType::Benchmark,
+            }
+
+        },
         _ => {
             give_error()
         },

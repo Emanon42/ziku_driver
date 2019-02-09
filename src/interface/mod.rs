@@ -1,7 +1,12 @@
+extern crate rand;
+
 use std::io::prelude::*;
 use crate::database;
 use crate::parser;
 use std::net::TcpStream;
+use rand::prelude::*;
+use rand::Rng;
+use std::time::{Duration, Instant};
 
 pub struct Handler<'a>{
     buffer: [u8; 512],
@@ -10,6 +15,7 @@ pub struct Handler<'a>{
 }
 
 pub enum CmdType{
+    Benchmark,
     SyntaxError,
     Get(String),
     Set(String, String),
@@ -83,6 +89,10 @@ impl<'a> Handler<'a>{
                         },
                         _ => ()
                     }
+                },
+                CmdType::Benchmark => {
+                    let mark = test_benchmark(&mut self.database);
+                    write_to_stream(&self.stream, format!("{}\n", mark).as_bytes())
                 },  
             }
         };
@@ -92,4 +102,21 @@ impl<'a> Handler<'a>{
 #[test]
 fn test_session_response(){
     // TODO: implement unit test for session_response
+}
+fn test_benchmark(db: &mut database::KVdb) -> String{
+    let set_start = Instant::now();
+    for n in 1..1000000{
+        let rand_k: String = (0..10).map(|_| rand::random::<u8>() as char).collect();
+        let rand_v = rand::thread_rng().gen_range(1, 114514);
+        db.set(&rand_k, &rand_v.to_string());
+    }
+    let set_end = Instant::now();
+    let mut mark = format!{"set 1,000,000 random data costs: {:?}", set_end.duration_since(set_start)};
+
+    let scan_start = Instant::now();
+    let rand_k: String = (0..10).map(|_| rand::random::<u8>() as char).collect();
+    db.scan(&rand_k);
+    let scan_end = Instant::now();
+    mark = format!{"{}\nscan in 1,000,000 random data costs: {:?}", mark, scan_end.duration_since(scan_start)};
+    mark
 }
